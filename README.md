@@ -7,5 +7,5 @@ Stokes and time-dependent Stokes problems
 used in developing the package see `requirements.txt`.
 
 ## TODO
--[ ] Do we need GPU
--[ ] Later add example of an inverse problem
+- [ ] Do we need GPU
+- [ ] Later add example of an inverse problem
