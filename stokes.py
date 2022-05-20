@@ -4,6 +4,7 @@ import torch.functional as F
 import torch.optim as optim
 
 from calculus import div, grad, transpose, dot
+from utils import sample_hypercube
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -89,30 +90,16 @@ optimizer = optim.LBFGS(params, max_iter=maxiter,
 # and the residual in the boundary conditions
 nvol_pts = 1000
 # So we sample (0, 1)^2 to get points for the PDE residual evaluation
-volume_x = torch.rand(1, nvol_pts, 2, requires_grad=True, dtype=torch.float64)
+volume_x = sample_hypercube(2, nvol_pts)
+volume_x.requires_grad = True
 
 nbdry_pts = 100
 # And analogously for the boundary
-left_x = torch.column_stack([torch.zeros(nbdry_pts, dtype=torch.float64),
-                             torch.rand(nbdry_pts, dtype=torch.float64)])
-left_x = left_x.reshape((1, nbdry_pts, 2))
-left_x.requires_grad = True
-
-right_x = torch.column_stack([torch.ones(nbdry_pts, dtype=torch.float64),
-                              torch.rand(nbdry_pts, dtype=torch.float64)])
-right_x = right_x.reshape((1, nbdry_pts, 2))
-right_x.requires_grad = True
-
-bot_x = torch.column_stack([torch.rand(nbdry_pts, dtype=torch.float64),
-                            torch.zeros(nbdry_pts, dtype=torch.float64)])
-bot_x = bot_x.reshape((1, nbdry_pts, 2))
-bot_x.requires_grad = True
-
-top_x = torch.column_stack([torch.rand(nbdry_pts, dtype=torch.float64),
-                            torch.ones(nbdry_pts, dtype=torch.float64)])
-top_x = top_x.reshape((1, nbdry_pts, 2))
-top_x.requires_grad = True
-
+bdry_xs = [sample_hypercube(2, nbdry_pts, fixed=[fixed])
+           for fixed in ((0, 0), (0, 1), (1, 0), (1, 1))]
+[setattr(bdry_x, 'requires_grad', True) for bdry_x in bdry_xs]
+# Expand
+left_x, right_x, bot_x, top_x = bdry_xs
 
 epoch_loss = []
 # Steps of the optimizer compute the forward pass to compute the loss
